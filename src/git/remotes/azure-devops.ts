@@ -93,13 +93,27 @@ export class AzureDevOpsRemote extends RemoteProvider {
 				{
 					// Default Pull request message when merging a PR in ADO. Will not catch commits & pushes following a different pattern.
 					prefix: 'PR ',
-					url: `${this.baseUrl}/pullrequest/<num>`,
+					// Use the organization's cross-project search capability
+					// Format: https://dev.azure.com/{org}/{_search/workitems?query={id}&_a=pullrequest
+					// This uses Azure DevOps's search functionality to find the PR across all projects
+					url: `${this.baseUrl.replace(/\/[^/]+\/_git\/[^/]+$/, '')}/_search?text=<num>&type=pullRequests`,
+					alphanumeric: false,
+					ignoreCase: false,
+					title: `Search for Pull Request #<num> on ${this.name}`,
+
+					type: 'pullrequest',
+					description: `${this.name} Pull Request #<num>`,
+				},
+				// Support for cross-project PRs with explicit project reference (PR project/123)
+				{
+					prefix: 'PR ',
+					url: `${this.baseUrl.replace(/\/[^/]+\/_git\/[^/]+$/, '')}/<prefix>/pullrequest/<num>`,
 					alphanumeric: false,
 					ignoreCase: false,
 					title: `Open Pull Request #<num> on ${this.name}`,
 
 					type: 'pullrequest',
-					description: `${this.name} Pull Request #<num>`,
+					description: `${this.name} Pull Request #<num> in <prefix>`,
 				},
 			];
 		}
